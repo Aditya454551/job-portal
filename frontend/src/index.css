@@ -1,82 +1,243 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-*{
-    font-family: Outfit;
+/* ============================= */
+/* GLOBAL */
+/* ============================= */
+
+* {
+  font-family: Outfit, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@layer base{
-    html{
-        scroll-behavior: smooth;
-    }
+/* ============================= */
+/* HTML */
+/* ============================= */
+
+html {
+  scroll-behavior: smooth;
 }
 
-::-webkit-scrollbar{
-    display: none;
+/* ============================= */
+/* BODY */
+/* ============================= */
+
+body {
+  background-color: #f9fafb;
+  color: #111827;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
+/* ============================= */
+/* DARK MODE */
+/* ============================= */
+
+.dark body {
+  background-color: #111827;
+  color: white;
+}
+
+/* ============================= */
+/* SCROLLBAR */
+/* ============================= */
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* ============================= */
+/* JOB DESCRIPTION */
+/* ============================= */
 
 .job-description {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.8;
-    color: #333;
-    padding: 20px;
-    
-    
+  line-height: 1.8;
+  color: #374151;
+  padding: 20px;
+  word-break: break-word;
 }
 
-/* Headings */
+/* ============================= */
+/* DARK MODE DESCRIPTION */
+/* ============================= */
+
+.dark .job-description {
+  color: #d1d5db;
+}
+
+/* ============================= */
+/* HEADINGS */
+/* ============================= */
+
+.job-description h1,
+.job-description h2,
+.job-description h3,
+.job-description h4,
+.job-description h5,
+.job-description h6 {
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+  margin-top: 18px;
+}
+
+.job-description h1 {
+  font-size: 2rem;
+}
+
 .job-description h2 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 10px;
+  font-size: 1.6rem;
 }
 
-/* Paragraphs */
+.job-description h3 {
+  font-size: 1.3rem;
+}
+
+/* ============================= */
+/* DARK MODE HEADINGS */
+/* ============================= */
+
+.dark .job-description h1,
+.dark .job-description h2,
+.dark .job-description h3,
+.dark .job-description h4,
+.dark .job-description h5,
+.dark .job-description h6 {
+  color: white;
+}
+
+/* ============================= */
+/* PARAGRAPHS */
+/* ============================= */
+
 .job-description p {
-    font-size: 1rem;
-    margin-bottom: 10px;
-    color: #444;
+  margin-bottom: 14px;
+  font-size: 1rem;
+  color: #4b5563;
 }
 
-/* Ordered List */
+/* ============================= */
+/* DARK MODE PARAGRAPHS */
+/* ============================= */
+
+.dark .job-description p {
+  color: #d1d5db;
+}
+
+/* ============================= */
+/* LISTS */
+/* ============================= */
+
+.job-description ul,
 .job-description ol {
-    padding-left: 20px;
-    margin-bottom: 15px;
+  padding-left: 24px;
+  margin-bottom: 16px;
 }
 
-.job-description ol li {
-    margin-bottom: 8px;
-    font-size: 1rem;
-    color: #555;
-    position: relative;
+/* ============================= */
+/* LIST ITEMS */
+/* ============================= */
+
+.job-description li {
+  margin-bottom: 10px;
+  color: #4b5563;
 }
 
-/* Bullet Points */
-.job-description ol li::before {
-    content: "✔";
-    color: #3498db;
-    font-weight: bold;
-    margin-right: 10px;
+/* ============================= */
+/* DARK MODE LIST ITEMS */
+/* ============================= */
+
+.dark .job-description li {
+  color: #d1d5db;
 }
 
-/* Responsive Design */
+/* ============================= */
+/* LINKS */
+/* ============================= */
+
+.job-description a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.dark .job-description a {
+  color: #60a5fa;
+}
+
+/* ============================= */
+/* BLOCKQUOTE */
+/* ============================= */
+
+.job-description blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 16px;
+  margin: 16px 0;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.dark .job-description blockquote {
+  color: #d1d5db;
+}
+
+/* ============================= */
+/* IMAGES */
+/* ============================= */
+
+.job-description img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
 @media (max-width: 768px) {
-    .job-description {
-        padding: 15px;
-    }
+  .job-description {
+    padding: 15px;
+  }
 
-    .job-description h2 {
-        font-size: 1.3rem;
-    }
+  .job-description h1 {
+    font-size: 1.6rem;
+  }
 
-    .job-description p, 
-    .job-description ol li {
-        font-size: 0.95rem;
-    }
+  .job-description h2 {
+    font-size: 1.4rem;
+  }
+
+  .job-description h3 {
+    font-size: 1.2rem;
+  }
+
+  .job-description p,
+  .job-description li {
+    font-size: 0.95rem;
+  }
+
+  ::-webkit-scrollbar {
+  width: 8px;
 }
 
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+}

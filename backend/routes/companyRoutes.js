@@ -1,18 +1,105 @@
-import express from 'express'
-import { changeJobApplicationStatus, changeVisiblity, getCompanyData, getCompanyJobApplicants, getCompanyPostedJobs, loginComapny, postJob, registerCompany } from '../controllers/companyController.js';
-import upload from '../config/multer.js';
-import { protectCompany } from '../middleware/authMiddleware.js';
+import express from "express";
 
-const router=express.Router();
+import {
+  registerCompany,
+  loginCompany,
+  getCompanyData,
+  postJob,
+ getCompanyApplications,
+  getCompanyPostedJobs,
+  updateApplicationStatus,
+  changeVisibility,
+  deleteJob,
+  updateJob,
+} from "../controllers/companyController.js";
 
-// Routes
-router.post('/register',upload.single('image'), registerCompany);
-router.post('/login',loginComapny)
-router.get('/company',protectCompany, getCompanyData)
-router.post('/post-job',protectCompany,postJob)
-router.get('/applicants',protectCompany,getCompanyJobApplicants)
-router.get('/list-jobs',protectCompany,getCompanyPostedJobs)
-router.post('/change-status',protectCompany,changeJobApplicationStatus)
-router.post('/change-visiblity',protectCompany,changeVisiblity)
+import { protectCompany } from "../middleware/authMiddleware.js";
 
-export default router
+const router = express.Router();
+
+
+// ========================================
+// AUTH ROUTES
+// ========================================
+
+router.post("/register", registerCompany);
+
+router.post("/login", loginCompany);
+
+
+// ========================================
+// COMPANY ROUTES
+// ========================================
+
+router.get(
+  "/company",
+  protectCompany,
+  getCompanyData
+);
+
+
+// ========================================
+// JOB ROUTES
+// ========================================
+
+// POST NEW JOB
+router.post(
+  "/post-job",
+  protectCompany,
+  postJob
+);
+
+// GET ALL COMPANY JOBS
+router.get(
+  "/list-jobs",
+  protectCompany,
+  getCompanyPostedJobs
+);
+
+// UPDATE JOB  ✅ NEW
+router.post(
+  "/update-job/:id",
+  protectCompany,
+  updateJob
+);
+
+// DELETE JOB
+router.delete(
+  "/delete-job/:jobId",
+  protectCompany,
+  deleteJob
+);
+
+router.put(
+  "/update-job/:jobId",
+  protectCompany,
+  updateJob,
+);
+
+// CHANGE VISIBILITY
+router.post(
+  "/change-visibility",
+  protectCompany,
+  changeVisibility
+);
+
+
+// ========================================
+// APPLICATION ROUTES
+// ========================================
+
+// GET APPLICATIONS
+router.get(
+  "/applications",
+  protectCompany,
+  getCompanyApplications
+);
+
+// UPDATE APPLICATION STATUS
+router.post(
+  "/change-status",
+  protectCompany,
+  updateApplicationStatus
+);
+
+export default router;

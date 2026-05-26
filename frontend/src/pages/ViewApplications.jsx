@@ -1,115 +1,303 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { assets } from '../assets/assets'
-import { AppContext } from '../context/AppContext'
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import Loading from '../components/Loading.jsx';
+import React, { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Loading from "../components/Loading";
+
+import { AppContext } from "../context/AppContext";
 
 const ViewApplications = () => {
-
+  // ==============================
+  // CONTEXT
+  // ==============================
   const { backendUrl, companyToken } = useContext(AppContext);
-  const [applicants, setApplicants] = useState(false);
 
-  // Functions to fetch company job applications dats
-  const fetchCompanyJobApplications = async () => {
+  // ==============================
+  // STATE
+  // ==============================
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ==============================
+  // FETCH APPLICATIONS
+  // ==============================
+  const fetchApplications = async () => {
     try {
+      setLoading(true);
 
-      const { data } = await axios.get(backendUrl + '/api/company/applicants',
-        { headers: { token: companyToken } }
-      )
+      const { data } = await axios.get(
+        `${backendUrl}/api/company/applications`,
+        {
+          headers: {
+            token: companyToken,
+          },
+        },
+      );
 
       if (data.success) {
-        setApplicants(data.applications.reverse())
+        setApplications(data.applications.reverse());
       } else {
-        toast.error(data.message)
+        toast.error(data.message);
       }
-
     } catch (error) {
-      toast.error(error.message)
-    }
-  }
+      console.log(error.message);
 
-  //Function to change job application status
-  const changeJobApplicationStatus = async (id, status) => {
+      toast.error("Failed to fetch applications");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==============================
+  // UPDATE STATUS
+  // ==============================
+  const updateApplicationStatus = async (id, status) => {
     try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/company/change-status`,
+        {
+          id,
+          status,
+        },
+        {
+          headers: {
+            token: companyToken,
+          },
+        },
+      );
 
-      const { data } = await axios.post(backendUrl + '/api/company/change-status',
-        { id, status },
-        { headers: { token: companyToken } }
-      )
       if (data.success) {
-        toast.success(data.message)
-        fetchCompanyJobApplications()
+        toast.success(data.message);
+
+        fetchApplications();
       } else {
-        toast.error(data.message)
+        toast.error(data.message);
       }
-
     } catch (error) {
-      toast.error(error.message)
-    }
-  }
+      console.log(error.message);
 
+      toast.error("Failed to update application");
+    }
+  };
+
+  // ==============================
+  // LOAD APPLICATIONS
+  // ==============================
   useEffect(() => {
     if (companyToken) {
-      fetchCompanyJobApplications()
+      fetchApplications();
     }
-  }, [companyToken])
+  }, [companyToken]);
 
-  return applicants ? applicants.length === 0 ? (
-    <div className='flex items-center justify-center h-[70vh]'>
-      <p className='text-xl sm:text-2xl'>No Applications Available</p>
-    </div>
-  ) : (
-    <div className='container p-2  mx-auto'>
-      <div>
-        <table className='w-full shadow-md rounded-lg  max-w-4xl bg-white border border-gray-200 max-sm:text-sm'>
-          <thead className='bg-gray-100'>
-            <tr className='border-b'>
-              <th className='py-2 px-4 text-left max-sm:hidden'>#</th>
-              <th className='py-2 px-4 text-left'>User name</th>
-              <th className='py-2 px-4 text-left max-sm:hidden'>Job Title</th>
-              <th className='py-2 px-4 text-left max-sm:hidden'>Location</th>
-              <th className='py-2 px-4 text-left'>Resume</th>
-              <th className='py-2 px-4 text-left'>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applicants.filter(item => item.jobId && item.userId).map((applicant, index) => (
-              <tr key={index} className='text-gray-700 hover:bg-gray-50'>
-                <td className='py-2 px-4 border-b text-center max-sm:hidden'>{index + 1}</td>
-                <td className='py-2 px-4 border-b text-center flex items-center justify-center'>
-                  <img className='w-10 h-10 rounded-full mr-3 max-sm:hidden' src={applicant.userId.image} />
-                  <span className='py-2 px-4 '>{applicant.userId.name}</span>
-                </td>
-                <td className='py-2 px-4 border-b max-sm:hidden'>{applicant.jobId.title}</td>
-                <td className='py-2 px-4 border-b max-sm:hidden'>{applicant.jobId.location}</td>
-                <td className='py-2 px-4 border-b'>
-                  <a href={applicant.userId.resume} target='_blank' className='bg-blue-50 text-blue-400 px-3 py-1 rounded inline-flex gap-2 justify-center items-center'>
-                    Resume <img src={assets.resume_download_icon} alt='' />
-                  </a>
-                </td>
-                <td className='py-2 px-4 border-b relative'>
-                  {applicant.status === 'Pending'
-                    ? <div className='relative inline-block text-left group'>
-                      <button className='text-gray-500 action-button'>...</button>
-                      <div className='z-10 hidden absolute right-0 md:left-0 top-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow group-hover:block '>
-                        <button onClick={() => changeJobApplicationStatus(applicant._id, 'Accepted')} className='block w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100'>Accept</button>
-                        <button onClick={() => changeJobApplicationStatus(applicant._id, 'Rejected')} className='block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100'>Reject</button>
-                      </div>
-                    </div>
-                    : <div>{applicant.status}</div>
-                  }
+  // ==============================
+  // LOADING STATE
+  // ==============================
+  if (loading) {
+    return (
+      <>
+        <Navbar />
 
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="min-h-screen flex justify-center items-center">
+          <Loading />
+        </div>
+
+        <Footer />
+      </>
+    );
+  }
+
+  // ==============================
+  // EMPTY STATE
+  // ==============================
+  if (applications.length === 0) {
+    return (
+      <>
+        <Navbar />
+
+        <div className="min-h-screen flex flex-col justify-center items-center px-4">
+          <h2 className="text-3xl font-bold text-gray-700">
+            No Applications Found
+          </h2>
+
+          <p className="text-gray-500 mt-3 text-center">
+            Applications will appear here once candidates apply.
+          </p>
+        </div>
+
+        <Footer />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+
+      <div className="min-h-screen bg-gray-50 py-10">
+        <div className="container 2xl:px-20 mx-auto px-4">
+          {/* ============================== */}
+          {/* HEADER */}
+          {/* ============================== */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">
+              Job Applications
+            </h1>
+
+            <p className="text-gray-500 mt-2">
+              Manage all candidate applications
+            </p>
+          </div>
+
+          {/* ============================== */}
+          {/* TABLE */}
+          {/* ============================== */}
+          <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px]">
+                <thead className="bg-gray-100 border-b">
+                  <tr>
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                      Candidate
+                    </th>
+
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                      Job Title
+                    </th>
+
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                      Location
+                    </th>
+
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                      Resume
+                    </th>
+
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                      Status
+                    </th>
+
+                    <th className="text-center px-6 py-4 font-semibold text-gray-700">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {applications
+                    .filter((app) => app.userId && app.jobId)
+                    .map((app) => (
+                      <tr
+                        key={app._id}
+                        className="border-b hover:bg-gray-50 transition"
+                      >
+                        {/* USER */}
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={app.userId.image}
+                              alt={app.userId.name}
+                              className="w-12 h-12 rounded-full object-cover border"
+                            />
+
+                            <div>
+                              <h3 className="font-semibold text-gray-800">
+                                {app.userId.name}
+                              </h3>
+
+                              <p className="text-sm text-gray-500">
+                                {app.userId.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* JOB */}
+                        <td className="px-6 py-5">
+                          <p className="font-medium text-gray-700">
+                            {app.jobId.title}
+                          </p>
+                        </td>
+
+                        {/* LOCATION */}
+                        <td className="px-6 py-5">
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                            {app.jobId.location}
+                          </span>
+                        </td>
+
+                        {/* RESUME */}
+                        <td className="px-6 py-5">
+                          {app.userId.resume ? (
+                            <a
+                              href={app.userId.resume}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:text-blue-700 font-medium underline"
+                            >
+                              View Resume
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">No Resume</span>
+                          )}
+                        </td>
+
+                        {/* STATUS */}
+                        <td className="px-6 py-5">
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              app.status === "Accepted"
+                                ? "bg-green-100 text-green-700"
+                                : app.status === "Rejected"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {app.status}
+                          </span>
+                        </td>
+
+                        {/* ACTIONS */}
+                        <td className="px-6 py-5">
+                          {app.status === "Pending" ? (
+                            <div className="flex justify-center gap-3">
+                              <button
+                                onClick={() =>
+                                  updateApplicationStatus(app._id, "Accepted")
+                                }
+                                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
+                              >
+                                Accept
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  updateApplicationStatus(app._id, "Rejected")
+                                }
+                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-center text-gray-400 font-medium">
+                              Completed
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  ) : <div className="flex items-center justify-center min-h-screen">
-    <Loading />
-  </div>
-}
 
-export default ViewApplications
+      <Footer />
+    </>
+  );
+};
+
+export default ViewApplications;

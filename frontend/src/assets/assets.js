@@ -72,24 +72,42 @@ export const assets = {
     amazon_logo
 }
 
-export const JobCategories = [
-    "Programming",
-    "Data Science",
-    "Designing",
-    "Networking",
-    "Management",
-    "Marketing",
-    "Cybersecurity",
-]
+export const jobCategories = [
+  "Software Development",
+  "Frontend Development",
+  "Backend Development",
+  "Full Stack Development",
+  "Mobile App Development",
+  "Data Science",
+  "Data Analytics",
+  "Data Engineering",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "DevOps",
+  "Cloud Computing",
+  "Cyber Security",
+  "UI/UX Design",
+  "Product Management",
+  "Quality Assurance",
+  "Blockchain",
+  "Game Development",
+  "Technical Support",
+  "Database Administration",
+  "Networking",
+  "IT Support",
+  "Business Intelligence",
+  "Software Testing",
+  "Embedded Systems",
+];
 
-export const JobLocations = [
+export const jobLocations = [
     "Bangalore",
-    "Washington",
+    "Jaipur",
     "Hyderabad",
     "Mumbai",
-    "California",
+    "Delhi",
     "Chennai",
-    "New York"
+    "Noida"
 ]
 
 // Sample data for Manage Jobs Page

@@ -1,239 +1,450 @@
+import bcrypt from "bcrypt";
+
 import Company from "../models/Company.js";
-import bcrypt from 'bcrypt'
-import {v2 as cloudinary} from 'cloudinary'
-import generateToken from "../utils/generateToken.js";
 import Job from "../models/Job.js";
 import JobApplication from "../models/jobApplications.js";
 
-// Register a new company
-export const registerCompany=async(req,res)=>{
-    const {name,email,password}=req.body
+import generateToken from "../utils/generateToken.js";
 
-    const imageFile=req.file;
+import { transporter } from "../config/mail.js";
 
-    if(!name || !email || !password || !imageFile){
-        return res.status(400).json({
-            success: false,
-            message: "Please fill all fields"
-        });
+// ==============================
+// REGISTER COMPANY
+// ==============================
+export const registerCompany = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
-    try {
-        const companyExist=await Company.findOne({email})
-        if(companyExist){
-            return res.status(400).json({
-                success: false,
-                message: "Company already exists with this email"
-            });
-        }
+    const existingCompany = await Company.findOne({ email });
 
-        const salt=await bcrypt.genSalt(10);
-        const hashedPassword=await bcrypt.hash(password,salt);
-
-        const imageUpload=await cloudinary.uploader.upload(imageFile.path)
-
-        const company=await Company.create({
-            name,
-            email,
-            password:hashedPassword,
-            image:imageUpload.secure_url
-        })
-
-        res.status(200).json({
-            success: true,
-            company: {
-                _id: company._id,
-                name: company.name,
-                email: company.email,
-                image: company.image
-            },
-            token: generateToken(company._id)
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (existingCompany) {
+      return res.status(400).json({
+        success: false,
+        message: "Company already exists",
+      });
     }
-}
 
-// company login
-export const loginComapny=async(req,res)=>{
-    const {email,password}=req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    try {
-        const company=await Company.findOne({email})
-        if(await bcrypt.compare(password,company.password)){
-            res.status(200).json({
-                success: true,
-                company: {
-                    _id: company._id,
-                    name: company.name,
-                    email: company.email,
-                    image: company.image
-                },
-                token: generateToken(company._id)
-            });
-        }else{
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password"
-            })
-        }
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    const company = await Company.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Company registered successfully",
+      company,
+      token: generateToken(company._id),
+    });
+  } catch (error) {
+    console.log("registerCompany:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ==============================
+// LOGIN COMPANY
+// ==============================
+export const loginCompany = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const company = await Company.findOne({ email });
+
+    if (!company) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
-}
 
-// get company data
-export const getCompanyData=async(req,res)=>{
-    try {
-        
-        const company=req.company
-        res.status(200).json({
-            success:true,
-            company
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        })
+    const isMatch = await bcrypt.compare(
+      password,
+      company.password,
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
-}
 
-// Posted a new job
-export const postJob=async(req,res)=>{
-    const {title,description,location,salary,level,category}=req.body
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      company,
+      token: generateToken(company._id),
+    });
+  } catch (error) {
+    console.log("loginCompany:", error.message);
 
-    const companyId=req.company._id
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 
-    try {
-        const newJob=new Job({
-            title,
-            description,
-            location,
-            salary,
-            companyId,
-            date:Date.now(),
-            level,
-            category
-        })
+// ==============================
+// GET COMPANY DATA
+// ==============================
+export const getCompanyData = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      company: req.company,
+    });
+  } catch (error) {
+    console.log("getCompanyData:", error.message);
 
-        await newJob.save()
-        res.status(201).json({
-            success: true,
-            newJob
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        })
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ==============================
+// POST JOB
+// ==============================
+export const postJob = async (req, res) => {
+  try {
+    const title = req.body.title?.trim();
+    const description = req.body.description?.trim();
+    const location = req.body.location?.trim();
+    const salary = Number(req.body.salary);
+    const level = req.body.level?.trim();
+    const category = req.body.category?.trim();
+
+    if (
+      !title ||
+      !description ||
+      !location ||
+      !salary ||
+      !level ||
+      !category
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing",
+      });
     }
-}
 
-// Get company job applicants
-export const getCompanyJobApplicants=async(req,res)=>{
-    try {
-        
-        const companyId=req.company._id;
+    const job = await Job.create({
+      title,
+      description,
+      location,
+      salary,
+      level,
+      category,
+      companyId: req.company._id,
+      visible: true,
+      date: Date.now(),
+    });
 
-        //Find job applications for the user and populate related data
-        const applications=await JobApplication.find({companyId})
-        .populate('userId','name image resume')
-        .populate('jobId','title location category level salary')
-        .exec()
+    res.status(201).json({
+      success: true,
+      message: "Job posted successfully",
+      job,
+    });
+  } catch (error) {
+    console.log("postJob:", error.message);
 
-        return res.status(200).json({
-            success:true,
-            applications
-        })
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 
-    } catch (error) {
-        return res.status(500).json({
-            success:false,
-            message:error.message
-        })
+// ==============================
+// GET COMPANY APPLICATIONS
+// ==============================
+export const getCompanyApplications = async (req, res) => {
+  try {
+    const applications = await JobApplication.find({
+      companyId: req.company._id,
+    })
+      .populate("userId", "name email image resume")
+      .populate("jobId", "title location")
+      .sort({ date: -1 });
+
+    res.status(200).json({
+      success: true,
+      applications,
+    });
+  } catch (error) {
+    console.log("getCompanyApplications:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ==============================
+// UPDATE APPLICATION STATUS
+// ==============================
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    if (
+      !["Pending", "Accepted", "Rejected"].includes(status)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
     }
-}
 
-// Get company posted jobs
-export const getCompanyPostedJobs=async(req,res)=>{
-    try {
-        
-        const companyId=req.company._id
-        const jobs=await Job.find({companyId})
+    const application = await JobApplication.findById(id)
+      .populate("userId", "name email")
+      .populate("jobId", "title");
 
-        // Adding no. of applicants info in data
-        const jobsData=await Promise.all(jobs.map(async(job)=>{
-            const applicants=await JobApplication.find({jobId:job._id});
-            return {...job.toObject(),applicants:applicants.length}
-        }))
-
-        res.status(200).json({
-            success: true,
-            jobsData
-        })
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        })
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
     }
-}
 
-// Change job application status
-export const changeJobApplicationStatus=async(req,res)=>{
-    try {
-        
-        const {id, status}=req.body
+    application.status = status;
 
-        // Find job application and update status
-        await JobApplication.findOneAndUpdate({_id:id},{status})
+    await application.save();
 
-        res.status(200).json({
-            success:true,
-            message:"Job application status updated successfully"
-        })
+    // EMAIL
+    if (application.userId?.email) {
+      await transporter.sendMail({
+        to: application.userId.email,
+        subject: `Application ${status}`,
+        html: `
+          <h2>Application Update</h2>
 
-    } catch (error) {
-        return res.status(500).json({
-            success:false,
-            message:error.message
-        })
+          <p>Hello ${application.userId.name},</p>
+
+          <p>
+            Your application for
+            <b>${application.jobId.title}</b>
+            has been marked as
+            <b>${status}</b>.
+          </p>
+
+          <p>Thank you.</p>
+        `,
+      });
     }
-}
 
-// change job visiblity
-export const changeVisiblity=async(req,res)=>{
-    try {
-        
-        const {id}=req.body
-        const companyId=req.company._id
-        const job=await Job.findById(id)
+    res.status(200).json({
+      success: true,
+      message: `Application ${status}`,
+    });
+  } catch (error) {
+    console.log(
+      "updateApplicationStatus:",
+      error.message,
+    );
 
-        if(companyId.toString() === job.companyId.toString()){
-            job.visible = !job.visible
-        }
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 
-        await job.save()
+// ==============================
+// GET COMPANY JOBS
+// ==============================
+export const getCompanyPostedJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find({
+      companyId: req.company._id,
+    }).sort({ date: -1 });
 
-        res.status(200).json({
-            success: true,
-            message: 'Job visiblity changed successfully',
-            job
-        })
+    const jobsData = await Promise.all(
+      jobs.map(async (job) => {
+        const applicants =
+          await JobApplication.countDocuments({
+            jobId: job._id,
+          });
 
-    } catch (error) {
-       return res.status(500).json({
-            success: false,
-            message: error.message
-        })
+        return {
+          ...job.toObject(),
+          applicants,
+        };
+      }),
+    );
 
+    res.status(200).json({
+      success: true,
+      jobsData,
+    });
+  } catch (error) {
+    console.log(
+      "getCompanyPostedJobs:",
+      error.message,
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ======================================================
+// UPDATE JOB
+// ======================================================
+export const updateJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const {
+      title,
+      description,
+      location,
+      salary,
+      category,
+      level,
+    } = req.body;
+
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      {
+        title,
+        description,
+        location,
+        salary,
+        category,
+        level,
+      },
+      { new: true },
+    );
+
+    if (!updatedJob) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
     }
-}
+
+    res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      job: updatedJob,
+    });
+  } catch (error) {
+    console.log("updateJob error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ==============================
+// DELETE JOB
+// ==============================
+export const deleteJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    if (
+      job.companyId.toString() !==
+      req.company._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    await Job.findByIdAndDelete(jobId);
+
+    await JobApplication.deleteMany({
+      jobId,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted successfully",
+    });
+  } catch (error) {
+    console.log("deleteJob:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ==============================
+// TOGGLE VISIBILITY
+// ==============================
+export const changeVisibility = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    const job = await Job.findById(id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    if (
+      job.companyId.toString() !==
+      req.company._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    job.visible = !job.visible;
+
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Visibility updated",
+      job,
+    });
+  } catch (error) {
+    console.log("changeVisibility:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

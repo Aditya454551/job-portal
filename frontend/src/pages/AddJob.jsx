@@ -1,140 +1,290 @@
-import Quill from 'quill';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { JobCategories, JobLocations } from '../assets/assets';
-import { AppContext } from '../context/AppContext';
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import React, { useContext, useState } from "react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+
+import { AppContext } from "../context/AppContext";
+import { jobCategories } from "../assets/assets";
 
 const AddJob = () => {
-  const [title, setTitle] = useState('');
-  const [location, setLocation] = useState('Bangalore');
-  const [category, setCategory] = useState('Programming');
-  const [level, setLevel] = useState('Beginner level');
-  const [salary, setSalary] = useState(0);
+  const navigate = useNavigate();
 
-  const editorRef = useRef(null);
-  const quillRef = useRef(null);
   const { backendUrl, companyToken } = useContext(AppContext);
 
-  const onSubmitHandler = async (e) => {
+  // ==========================================
+  // STATES
+  // ==========================================
+  const [jobData, setJobData] = useState({
+    title: "",
+    location: "",
+    category: "",
+    level: "",
+    salary: "",
+    description: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  // ==========================================
+  // HANDLE INPUT CHANGE
+  // ==========================================
+  const handleChange = (e) => {
+    setJobData({
+      ...jobData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // ==========================================
+  // HANDLE SUBMIT
+  // ==========================================
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const { title, location, category, level, salary, description } = jobData;
+
+    if (!title || !location || !category || !level || !salary || !description) {
+      return toast.error("Please fill all fields");
+    }
+
     try {
-      const description = quillRef.current.root.innerHTML;
+      setLoading(true);
 
       const { data } = await axios.post(
-        backendUrl + '/api/company/post-job',
-        { title, description, location, salary, category, level },
-        { headers: { token: companyToken } }
+        `${backendUrl}/api/company/post-job`,
+        jobData,
+        {
+          headers: {
+            token: companyToken,
+          },
+        },
       );
 
       if (data.success) {
-        toast.success('Job Added Successfully');
-        setTitle('');
-        setSalary(0);
-        quillRef.current.root.innerHTML = '';
+        toast.success("Job posted successfully");
+
+        navigate("/manage-jobs");
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      console.log(error);
+
+      toast.error(error.response?.data?.message || "Failed to post job");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!quillRef.current && editorRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
-        theme: 'snow',
-      });
-    }
-  }, []);
-
   return (
-    <form onSubmit={onSubmitHandler} className="p-6 sm:p-10 w-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-700 mb-6">Add a New Job</h2>
+    <>
+      <Navbar />
 
-      {/* Job Title */}
-      <div className="mb-4">
-        <label className="block text-gray-600 font-medium mb-1">Job Title</label>
-        <input
-          type="text"
-          placeholder="Type here"
-          onChange={(e) => setTitle(e.target.value)}
-          value={title}
-          required
-          className="w-full border border-gray-300 p-2 rounded-md outline-none focus:ring focus:ring-blue-300"
-        />
+      <div className="min-h-screen bg-gray-50 py-10 dark:bg-gray-900 transition-colors duration-300">
+        <div className="container mx-auto px-4 2xl:px-20">
+          {/* HEADER */}
+          <div className="mb-10">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+              Post New Job
+            </h1>
+
+            <p className="mt-2 text-gray-500 dark:text-gray-300">
+              Create a new job opening for your company
+            </p>
+          </div>
+
+          {/* FORM */}
+          <form
+            onSubmit={handleSubmit}
+            className="
+              rounded-3xl border border-gray-200
+              bg-white p-8 shadow-sm
+              dark:border-gray-700
+              dark:bg-gray-800
+            "
+          >
+            {/* JOB TITLE */}
+            <div className="mb-6">
+              <label className="mb-2 block font-medium dark:text-white">
+                Job Title
+              </label>
+
+              <input
+                type="text"
+                name="title"
+                value={jobData.title}
+                onChange={handleChange}
+                placeholder="Senior React Developer"
+                className="
+                  w-full rounded-xl border
+                  px-4 py-3 outline-none
+                  focus:ring-2 focus:ring-blue-500
+                  dark:border-gray-600
+                  dark:bg-gray-900
+                  dark:text-white
+                "
+              />
+            </div>
+
+            {/* LOCATION */}
+            <div className="mb-6">
+              <label className="mb-2 block font-medium dark:text-white">
+                Location
+              </label>
+
+              <input
+                type="text"
+                name="location"
+                value={jobData.location}
+                onChange={handleChange}
+                placeholder="Bangalore, India"
+                className="
+                  w-full rounded-xl border
+                  px-4 py-3 outline-none
+                  focus:ring-2 focus:ring-blue-500
+                  dark:border-gray-600
+                  dark:bg-gray-900
+                  dark:text-white
+                "
+              />
+            </div>
+
+            {/* CATEGORY + LEVEL */}
+            <div className="mb-6 grid gap-6 md:grid-cols-2">
+              {/* CATEGORY */}
+              <div>
+                <label className="mb-2 block font-medium dark:text-white">
+                  Category
+                </label>
+
+                <select
+                  name="category"
+                  value={jobData.category}
+                  onChange={handleChange}
+                  className="
+                    w-full rounded-xl border
+                    px-4 py-3 outline-none
+                    focus:ring-2 focus:ring-blue-500
+                    dark:border-gray-600
+                    dark:bg-gray-900
+                    dark:text-white
+                  "
+                >
+                  <option value="">Select Category</option>
+
+                  {jobCategories.map((category, index) => (
+                    <option key={index} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* EXPERIENCE LEVEL */}
+              <div>
+                <label className="mb-2 block font-medium dark:text-white">
+                  Experience Level
+                </label>
+
+                <select
+                  name="level"
+                  value={jobData.level}
+                  onChange={handleChange}
+                  className="
+                    w-full rounded-xl border
+                    px-4 py-3 outline-none
+                    focus:ring-2 focus:ring-blue-500
+                    dark:border-gray-600
+                    dark:bg-gray-900
+                    dark:text-white
+                  "
+                >
+                  <option value="">Select Level</option>
+
+                  <option value="Internship">Internship</option>
+                  <option value="Fresher">Fresher</option>
+                  <option value="Junior Level">Junior Level</option>
+                  <option value="Mid Level">Mid Level</option>
+                  <option value="Senior Level">Senior Level</option>
+                  <option value="Lead">Lead</option>
+                  <option value="Manager">Manager</option>
+                </select>
+              </div>
+            </div>
+
+            {/* SALARY */}
+            <div className="mb-6">
+              <label className="mb-2 block font-medium dark:text-white">
+                Salary
+              </label>
+
+              <input
+                type="number"
+                name="salary"
+                value={jobData.salary}
+                onChange={handleChange}
+                placeholder="50000"
+                className="
+                  w-full rounded-xl border
+                  px-4 py-3 outline-none
+                  focus:ring-2 focus:ring-blue-500
+                  dark:border-gray-600
+                  dark:bg-gray-900
+                  dark:text-white
+                "
+              />
+            </div>
+
+            {/* DESCRIPTION */}
+            <div className="mb-8">
+              <label className="mb-2 block font-medium dark:text-white">
+                Job Description
+              </label>
+
+              <div className="overflow-hidden rounded-xl bg-white dark:bg-gray-900">
+                <ReactQuill
+                  theme="snow"
+                  value={jobData.description}
+                  onChange={(value) =>
+                    setJobData({
+                      ...jobData,
+                      description: value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            {/* BUTTON */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`
+                rounded-xl px-8 py-3
+                font-medium text-white
+                transition-all duration-300
+
+                ${
+                  loading
+                    ? "cursor-not-allowed bg-gray-400"
+                    : "bg-blue-600 hover:bg-blue-700 hover:scale-105"
+                }
+              `}
+            >
+              {loading ? "Publishing Job..." : "Publish Job"}
+            </button>
+          </form>
+        </div>
       </div>
 
-      {/* Job Description */}
-      <div className="mb-4">
-        <label className="block text-gray-600 font-medium mb-1">Job Description</label>
-        <div ref={editorRef} className="w-full min-h-[200px] max-h-[300px] overflow-y-auto border border-gray-300 p-3 rounded-md bg-white"></div>
-      </div>
-
-      {/* Job Details Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Job Category */}
-        <div>
-          <label className="block text-gray-600 font-medium mb-1">Job Category</label>
-          <select
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md outline-none focus:ring focus:ring-blue-300"
-          >
-            {JobCategories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Job Location */}
-        <div>
-          <label className="block text-gray-600 font-medium mb-1">Job Location</label>
-          <select
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md outline-none focus:ring focus:ring-blue-300"
-          >
-            {JobLocations.map((location, index) => (
-              <option key={index} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Job Level */}
-        <div>
-          <label className="block text-gray-600 font-medium mb-1">Job Level</label>
-          <select
-            onChange={(e) => setLevel(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md outline-none focus:ring focus:ring-blue-300"
-          >
-            <option value="Beginner level">Beginner level</option>
-            <option value="Intermediate level">Intermediate level</option>
-            <option value="Senior level">Senior level</option>
-          </select>
-        </div>
-
-        {/* Job Salary */}
-        <div>
-          <label className="block text-gray-600 font-medium mb-1">Job Salary</label>
-          <input
-            type="number"
-            placeholder="10000"
-            min={0}
-            onChange={(e) => setSalary(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md outline-none focus:ring focus:ring-blue-300"
-          />
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <button className="mt-6 bg-black text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">
-        Add Job
-      </button>
-    </form>
+      <Footer />
+    </>
   );
 };
 

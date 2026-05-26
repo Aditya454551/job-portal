@@ -1,30 +1,64 @@
 import express from "express";
+
 import {
+  syncUser,
   applyForJob,
   getUserData,
   getUserJobApplications,
   updateUserResume,
+  saveJob,
+  getSavedJobs,
 } from "../controllers/userController.js";
+
 import upload from "../config/multer.js";
-import { requireAuth } from "@clerk/express";
+import protectUser from "../middleware/protectUser.js";
 
 const router = express.Router();
 
-// Get user data (authenticated)
-router.get("/user", requireAuth(), getUserData);
+// ==============================
+// USER ROUTES
+// ==============================
 
-// Apply for a job (authenticated)
-router.post("/apply", requireAuth(), applyForJob);
+// Sync Clerk user to MongoDB
+router.get("/sync", protectUser, syncUser);
 
-// Get user applied jobs (authenticated)
-router.get("/applications", requireAuth(), getUserJobApplications);
+// Get logged in user data
+router.get("/user", protectUser, getUserData);
 
-// Update user resume (authenticated)
+// Apply for a job
+router.post("/apply", protectUser, applyForJob);
+
+// Get applied jobs
+router.get(
+  "/applications",
+  protectUser,
+  getUserJobApplications,
+);
+
+// Upload resume
 router.post(
   "/update-resume",
-  requireAuth(),
+  protectUser,
   upload.single("resume"),
-  updateUserResume
+  updateUserResume,
+);
+
+// ==============================
+// SAVED JOBS
+// ==============================
+
+// Save / Unsave job
+router.post(
+  "/save-job",
+  protectUser,
+  saveJob,
+);
+
+// Get all saved jobs
+router.get(
+  "/saved-jobs",
+  protectUser,
+  getSavedJobs,
 );
 
 export default router;

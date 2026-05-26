@@ -1,9 +1,11 @@
 import React, { useContext, useRef } from "react";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
+import { motion } from "framer-motion";
 
 const Hero = () => {
   const { setSearchFilter, setIsSearched } = useContext(AppContext);
+
   const titleRef = useRef(null);
   const locationRef = useRef(null);
 
@@ -12,6 +14,7 @@ const Hero = () => {
       title: titleRef.current.value,
       location: locationRef.current.value,
     });
+
     setIsSearched(true);
   };
 
@@ -24,77 +27,86 @@ const Hero = () => {
   return (
     <div className="2xl:px-20 mx-auto my-10 px-4">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 text-white py-16 text-center rounded-2xl shadow-2xl relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-soft-light"></div>
-          <div className="absolute bottom-10 right-20 w-96 h-96 bg-blue-300 rounded-full mix-blend-soft-light"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#4c1d95] to-[#be185d] py-16 text-white shadow-2xl">
+        {/* Background circles */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-20 h-72 w-72 rounded-full bg-purple-300"></div>
+          <div className="absolute bottom-10 right-20 h-96 w-96 rounded-full bg-blue-300"></div>
         </div>
 
-        <div className="relative z-10">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+        <div className="relative z-10 text-center">
+          <h2 className="mb-4 text-3xl font-bold leading-tight md:text-4xl lg:text-5xl">
             Discover Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
               Dream Career
             </span>{" "}
             Opportunity
           </h2>
-          <p className="mb-8 max-w-2xl mx-auto text-lg font-light px-5">
+
+          <p className="mx-auto mb-8 max-w-2xl px-5 text-lg text-gray-200">
             Explore over{" "}
             <span className="font-semibold text-yellow-300">20,000+</span>{" "}
             curated job openings. Your next career breakthrough starts here.
           </p>
 
-          {/* Enhanced Search UI */}
-          <div className="bg-white text-gray-600 max-w-3xl mx-auto rounded-xl shadow-2xl p-1 flex flex-col md:flex-row items-stretch">
-            <div className="flex-1 flex items-center p-3 border-b md:border-b-0 md:border-r border-gray-100">
+          {/* Search Box */}
+          <div className="mx-auto flex max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900 md:flex-row">
+            {/* Title Input */}
+            <div className="flex flex-1 items-center border-b border-gray-200 px-4 py-4 dark:border-gray-700 md:border-b-0 md:border-r">
               <img
-                className="h-5 w-5 mr-2 text-blue-500"
                 src={assets.search_icon}
-                alt="Search"
+                alt="search"
+                className="mr-3 h-5 w-5 opacity-70"
               />
+
               <input
                 type="text"
-                placeholder="Job title, skills, or company"
                 ref={titleRef}
-                onKeyPress={handleKeyPress}
-                className="flex-1 p-1 outline-none placeholder-gray-400 text-gray-700"
+                onKeyDown={handleKeyPress}
+                placeholder="Job title, skills, or company"
+                className="w-full bg-transparent text-gray-700 outline-none placeholder:text-gray-400 dark:text-white"
               />
             </div>
-            <div className="flex-1 flex items-center p-3 border-b md:border-b-0 md:border-r border-gray-100">
+
+            {/* Location Input */}
+            <div className="flex flex-1 items-center border-b border-gray-200 px-4 py-4 dark:border-gray-700 md:border-b-0 md:border-r">
               <img
-                className="h-5 w-5 mr-2 text-blue-500"
                 src={assets.location_icon}
-                alt="Location"
+                alt="location"
+                className="mr-3 h-5 w-5 opacity-70"
               />
+
               <input
                 type="text"
-                placeholder="Location or remote"
                 ref={locationRef}
-                onKeyPress={handleKeyPress}
-                className="flex-1 p-1 outline-none placeholder-gray-400 text-gray-700"
+                onKeyDown={handleKeyPress}
+                placeholder="Location or remote"
+                className="w-full bg-transparent text-gray-700 outline-none placeholder:text-gray-400 dark:text-white"
               />
             </div>
+
+            {/* Button */}
             <button
               onClick={onSearch}
-              className="bg-gradient-to-r from-blue-600 to-indigo-700 py-3 px-8 rounded-xl text-white font-medium hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-4 font-semibold text-white transition-all duration-300 hover:from-blue-700 hover:to-indigo-800"
             >
               Search Jobs
             </button>
           </div>
 
-          <div className="mt-4 text-sm text-gray-300">
+          <p className="mt-4 text-sm text-gray-300">
             Try: "Frontend Developer", "Remote", "Project Manager"
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* Trusted By Section */}
-      <div className="bg-white shadow-lg mx-auto mt-8 p-6 rounded-2xl flex flex-col items-center">
-        <p className="font-medium text-gray-500 mb-6 text-sm uppercase tracking-wider">
+      {/* Trusted Companies */}
+      <div className="mx-auto mt-8 rounded-3xl bg-white p-6 shadow-lg transition-colors duration-300 dark:bg-gray-900">
+        <p className="mb-6 text-center text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-300">
           Trusted by leading companies worldwide
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 place-items-center w-full">
+
+        <div className="grid grid-cols-2 gap-8 place-items-center md:grid-cols-3 lg:grid-cols-6">
           {[
             assets.microsoft_logo,
             assets.walmart_logo,
@@ -105,12 +117,12 @@ const Hero = () => {
           ].map((logo, index) => (
             <div
               key={index}
-              className="p-3 rounded-lg hover:bg-gray-50 transition-all duration-300 grayscale hover:grayscale-0 opacity-80 hover:opacity-100"
+              className="rounded-xl p-3 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <img
-                className="h-6 object-contain"
                 src={logo}
-                alt="Company logo"
+                alt="company-logo"
+                className="h-7 object-contain grayscale transition-all duration-300 hover:grayscale-0"
               />
             </div>
           ))}
