@@ -209,18 +209,38 @@ const Navbar = () => {
           </button>
         </div>
 
+        {/* RECRUITER */}
+        {!companyToken ? (
+          <button
+            onClick={() => {
+              setShowRecruiterLogin(true);
+              setMobileMenu(false);
+            }}
+            className="text-left font-medium text-blue-600"
+          >
+            Recruiter Login
+          </button>
+        ) : (
+          <button
+            onClick={handleRecruiterLogout}
+            className="text-left font-medium text-red-500"
+          >
+            Recruiter Logout
+          </button>
+        )}
+
         {/* ================= MOBILE MENU ================= */}
         {mobileMenu && (
           <div
             className="
-              border-t border-gray-200
-              bg-white px-5 py-5
+      border-t border-gray-200
+      bg-white px-5 py-5
 
-              dark:border-gray-700
-              dark:bg-gray-900
+      dark:border-gray-700
+      dark:bg-gray-900
 
-              lg:hidden
-            "
+      lg:hidden
+    "
           >
             <div className="flex flex-col gap-5">
               <Link to="/" onClick={() => setMobileMenu(false)}>
@@ -282,11 +302,31 @@ const Navbar = () => {
                 </button>
               ) : (
                 <button
-                  onClick={handleRecruiterLogout}
+                  onClick={() => {
+                    handleRecruiterLogout();
+                    setMobileMenu(false);
+                  }}
                   className="text-left font-medium text-red-500"
                 >
                   Recruiter Logout
                 </button>
+              )}
+
+              {/* USER */}
+              {!user ? (
+                <button
+                  onClick={() => {
+                    openSignIn();
+                    setMobileMenu(false);
+                  }}
+                  className="text-left font-medium text-gray-900 dark:text-white"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <div className="pt-2">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
               )}
             </div>
           </div>
