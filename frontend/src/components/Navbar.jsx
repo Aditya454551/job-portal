@@ -47,7 +47,6 @@ const Navbar = () => {
   const navClass = ({ isActive }) =>
     `
       relative font-medium transition-all duration-300
-
       ${
         isActive
           ? "text-blue-600"
@@ -61,13 +60,10 @@ const Navbar = () => {
       <nav
         className="
           fixed top-0 left-0 z-50 w-full
-
           border-b border-gray-200/50
           bg-white/80 backdrop-blur-xl
-
           dark:border-gray-700/50
           dark:bg-gray-900/80
-
           shadow-sm
         "
       >
@@ -85,12 +81,7 @@ const Navbar = () => {
           >
             <img src={assets.logo} alt="logo" className="h-8 object-contain" />
 
-            <h1
-              className="
-                text-2xl font-extrabold
-                tracking-tight text-blue-600
-              "
-            >
+            <h1 className="text-2xl font-extrabold tracking-tight text-blue-600">
               JobConnect
             </h1>
           </div>
@@ -134,9 +125,7 @@ const Navbar = () => {
               className="
                 rounded-xl border border-gray-200
                 p-2 transition-all duration-300
-
                 hover:bg-gray-100
-
                 dark:border-gray-700
                 dark:hover:bg-gray-800
               "
@@ -152,7 +141,6 @@ const Navbar = () => {
                   rounded-xl
                   bg-blue-600 px-5 py-2.5
                   font-medium text-white
-
                   transition-all duration-300
                   hover:bg-blue-700
                 "
@@ -166,10 +154,8 @@ const Navbar = () => {
                   rounded-xl
                   border border-red-200
                   px-5 py-2.5
-
                   font-medium text-red-500
                   transition-all duration-300
-
                   hover:bg-red-50
                 "
               >
@@ -187,10 +173,8 @@ const Navbar = () => {
                   rounded-xl
                   bg-gray-900 px-5 py-2.5
                   font-medium text-white
-
                   transition-all duration-300
                   hover:bg-black
-
                   dark:bg-white
                   dark:text-black
                 "
@@ -209,38 +193,16 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* RECRUITER */}
-        {!companyToken ? (
-          <button
-            onClick={() => {
-              setShowRecruiterLogin(true);
-              setMobileMenu(false);
-            }}
-            className="text-left font-medium text-blue-600"
-          >
-            Recruiter Login
-          </button>
-        ) : (
-          <button
-            onClick={handleRecruiterLogout}
-            className="text-left font-medium text-red-500"
-          >
-            Recruiter Logout
-          </button>
-        )}
-
         {/* ================= MOBILE MENU ================= */}
         {mobileMenu && (
           <div
             className="
-      border-t border-gray-200
-      bg-white px-5 py-5
-
-      dark:border-gray-700
-      dark:bg-gray-900
-
-      lg:hidden
-    "
+              border-t border-gray-200
+              bg-white px-5 py-5
+              dark:border-gray-700
+              dark:bg-gray-900
+              lg:hidden
+            "
           >
             <div className="flex flex-col gap-5">
               <Link to="/" onClick={() => setMobileMenu(false)}>

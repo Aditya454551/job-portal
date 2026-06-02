@@ -39,25 +39,16 @@ const JobListing = () => {
 
     // SEARCH FILTER
     if (searchFilter.title) {
-      filtered = filtered.filter((job) => {
-        const searchText = searchFilter.title.toLowerCase();
+      const searchText = searchFilter.title.toLowerCase();
 
-        return (
+      filtered = filtered.filter(
+        (job) =>
           job.title?.toLowerCase().includes(searchText) ||
           job.category?.toLowerCase().includes(searchText) ||
-          job.companyId?.name?.toLowerCase().includes(searchText)
-        );
-      });
-    }
-
-    if (searchFilter.location) {
-      filtered = filtered.filter((job) =>
-        job.location
-          ?.toLowerCase()
-          .includes(searchFilter.location.toLowerCase()),
+          job.location?.toLowerCase().includes(searchText) ||
+          job.companyId?.name?.toLowerCase().includes(searchText),
       );
     }
-
     // CATEGORY FILTER
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((job) =>
@@ -71,9 +62,11 @@ const JobListing = () => {
     }
 
     // LOCATION FILTER
-    if (selectedLocations.length) {
+    if (selectedLocations.length > 0) {
       filtered = filtered.filter((job) =>
-        selectedLocations.includes(job.location),
+        selectedLocations.some((location) =>
+          job.location?.toLowerCase().includes(location.toLowerCase()),
+        ),
       );
     }
 
